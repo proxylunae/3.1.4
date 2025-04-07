@@ -1,11 +1,30 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Spring Security Example</title>
+    <meta charset="UTF-8">
+    <title>User Info</title>
+    <link rel="stylesheet" href="/css/bootstrap.css">
+    <link rel="stylesheet" href="/css/style.css">
 </head>
-<body>
-<h1>User, welcome spring boot security page!</h1>
+<body class="d-flex justify-content-center align-items-center">
 
+<div class="overlay-card text-center">
+    <form th:action="@{/logout}" method="post" class="text-end mb-3">
+        <button type="submit" class="btn btn-danger btn-sm">Logout</button>
+    </form>
+    <h2 class="mb-4">User Information</h2>
+
+    <p><strong>Username:</strong> <span th:text="${user.username}">username</span></p>
+    <p><strong>Age:</strong> <span th:text="${user.age}">0</span></p>
+    <p><strong>Roles:</strong>
+        <span th:each="role : ${user.roles}"
+              th:text="${#strings.replace(role.name, 'ROLE_', '')}"
+              class="badge bg-dark text-white me-2 px-3 py-2 fs-6 rounded-pill shadow-sm">
+        </span>
+    </p>
+
+    <a href="/" class="btn btn-secondary mt-3 w-100">Back to Home</a>
+</div>
 
 </body>
 </html>
