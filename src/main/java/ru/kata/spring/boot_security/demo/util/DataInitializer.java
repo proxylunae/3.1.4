@@ -35,9 +35,5 @@ public class DataInitializer implements CommandLineRunner {
 
         userService.add(admin);
         userService.add(user);
-
-        System.out.println("DataInitializer encoder: " + passwordEncoder.getClass());
-        System.out.println("Хэш admin: " + passwordEncoder.encode("admin"));
-        System.out.println("Сравнение: " + passwordEncoder.matches("admin", passwordEncoder.encode("admin")));
     }
 }
