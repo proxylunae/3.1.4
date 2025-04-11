@@ -7,10 +7,11 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.repository.RoleRepository;
-import ru.kata.spring.boot_security.demo.repository.UserDao;
+import ru.kata.spring.boot_security.demo.repository.UserRepository;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -18,42 +19,42 @@ import java.util.stream.Collectors;
 @Transactional
 public class UserServiceImpl implements UserService {
 
-    private final UserDao userDao;
+    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository roleRepository;
 
 
     @Autowired
-    public UserServiceImpl(UserDao userDao, PasswordEncoder passwordEncoder, RoleRepository roleRepository) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, RoleRepository roleRepository) {
         this.roleRepository = roleRepository;
-        this.userDao = userDao;
+        this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public void add(User user) {
-        userDao.add(user);
+        userRepository.add(user);
     }
 
     @Override
     public User getUserById(Long id) {
-        return userDao.getUserById(id);
+        return userRepository.getUserById(id);
     }
 
     @Override
     public List<User> listUsers() {
-        return userDao.listUsers();
+        return userRepository.listUsers();
     }
 
     @Override
     public void update(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        userDao.update(user);
+        userRepository.update(user);
     }
 
     @Override
     public void delete(Long id) {
-        userDao.delete(id);
+        userRepository.delete(id);
     }
 
     @Override
@@ -69,12 +70,12 @@ public class UserServiceImpl implements UserService {
 
         User user = new User(username, age, passwordEncoder.encode(password));
         user.setRoles(roles);
-        userDao.add(user);
+        userRepository.add(user);
     }
 
     @Override
-    public void updateUser(Long id, String username, byte age, String password) {
-        User user = userDao.getUserById(id);
+    public void updateUser(Long id, String username, byte age, String password, String[] roleNames) {
+        User user = userRepository.getUserById(id);
         user.setUsername(username);
         user.setAge(age);
 
@@ -82,11 +83,29 @@ public class UserServiceImpl implements UserService {
             user.setPassword(passwordEncoder.encode(password));
         }
 
-        userDao.update(user);
+        Set<Role> roles = Arrays.stream(roleNames)
+                .map(Long::parseLong)
+                .map(roleRepository::findById)
+                .map(opt -> opt.orElse(null))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        boolean hasAdmin = roles.stream()
+                .anyMatch(r -> "ROLE_ADMIN".equals(r.getName()));
+        if (hasAdmin) {
+            Role userRole = roleRepository.findByName("ROLE_USER");
+            if (userRole != null) {
+                roles.add(userRole);
+            }
+        }
+
+        user.setRoles(roles);
+        userRepository.update(user);
     }
+
 
     @Override
     public User findByUsername(String username) {
-        return userDao.findByUsername(username);
+        return userRepository.findByUsername(username);
     }
 }

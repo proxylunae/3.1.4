@@ -10,6 +10,6 @@ public interface UserService {
     void update(User user);
     void delete(Long id);
     void createUser(String username, byte age, String password, String[] roles);
-    void updateUser(Long id, String username, byte age, String password);
+    void updateUser(Long id, String username, byte age, String password, String[] roles);
     User findByUsername(String username);
 }

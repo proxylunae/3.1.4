@@ -8,12 +8,12 @@ import ru.kata.spring.boot_security.demo.model.User;
 import java.util.List;
 
 @Repository
-public class UserDaoImpl implements UserDao {
+public class UserRepositoryImpl implements UserRepository {
 
     private final EntityManager entityManager;
 
     @Autowired
-    public UserDaoImpl(EntityManager entityManager) {
+    public UserRepositoryImpl(EntityManager entityManager) {
         this.entityManager = entityManager;
     }
 
@@ -48,7 +48,7 @@ public class UserDaoImpl implements UserDao {
     @Override
     public User findByUsername(String username) {
         return entityManager
-                .createQuery("SELECT u FROM User u WHERE u.username = :username", User.class)
+                .createQuery("SELECT u FROM User u LEFT JOIN FETCH u.roles WHERE u.username = :username", User.class)
                 .setParameter("username", username)
                 .getSingleResult();
     }

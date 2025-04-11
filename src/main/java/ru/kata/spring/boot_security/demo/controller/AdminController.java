@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import ru.kata.spring.boot_security.demo.model.User;
+import ru.kata.spring.boot_security.demo.repository.RoleRepository;
 import ru.kata.spring.boot_security.demo.service.UserService;
 
 @Controller
@@ -15,9 +16,11 @@ import ru.kata.spring.boot_security.demo.service.UserService;
 public class AdminController {
 
     private final UserService userService;
+    private final RoleRepository roleRepository;
 
     @Autowired
-    public AdminController(UserService userService) {
+    public AdminController(UserService userService, RoleRepository roleRepository) {
+        this.roleRepository = roleRepository;
         this.userService = userService;
     }
 
@@ -58,6 +61,7 @@ public class AdminController {
     public String showEditForm(@RequestParam("id") Long id, Model model) {
         User user = userService.getUserById(id);
         model.addAttribute("user", user);
+        model.addAttribute("allRoles", roleRepository.findAll());
         return "user-edit";
     }
 
@@ -65,8 +69,9 @@ public class AdminController {
     public String editUser(@RequestParam("id") Long id,
                            @RequestParam("username") String username,
                            @RequestParam("age") byte age,
-                           @RequestParam(value = "password", required = false) String password) {
-        userService.updateUser(id, username, age, password);
+                           @RequestParam(value = "password", required = false) String password,
+                           @RequestParam("roles") String[] roleNames) {
+        userService.updateUser(id, username, age, password, roleNames);
         return "redirect:/admin";
     }
 
