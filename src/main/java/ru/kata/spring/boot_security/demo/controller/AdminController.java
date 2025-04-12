@@ -11,6 +11,8 @@ import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.repository.RoleRepository;
 import ru.kata.spring.boot_security.demo.service.UserService;
 
+import java.security.Principal;
+
 @Controller
 @RequestMapping("/admin")   // Добавлено
 public class AdminController {
@@ -25,53 +27,42 @@ public class AdminController {
     }
 
     @GetMapping("")
-    public String adminPage(Model model) {
+    public String adminPage(Model model, Principal principal) {
         model.addAttribute("users", userService.listUsers());
-        return "user-list";
-    }
-
-    @GetMapping("/add")
-    public String showAddUserForm(@RequestParam(value = "error", required = false) String error,
-                                  @RequestParam(value = "username", required = false) String username,
-                                  @RequestParam(value = "age", required = false) Byte age,
-                                  Model model) {
-        model.addAttribute("error", error);
-        model.addAttribute("username", username);
-        model.addAttribute("age", age);
-        return "user-add";
+        model.addAttribute("allRoles", roleRepository.findAll());
+        model.addAttribute("currentUser", userService.findByEmail(principal.getName()));
+        return "admin";
     }
 
     @PostMapping("/add")
-    public String addUser(@RequestParam("username") String username,
+    public String addUser(@RequestParam("email") String email,
                           @RequestParam("age") byte age,
                           @RequestParam("password") String password,
-                          @RequestParam(value = "roles", required = false) String[] roles) {
+                          @RequestParam(value = "roles", required = false) String[] roles,
+                          @RequestParam(value = "firstName") String firstName,
+                          @RequestParam(value = "lastName") String lastName) {
 
         if (roles == null || roles.length == 0) {
             return "redirect:/admin/add?error=roles_required"
-                    + "&username=" + username
-                    + "&age=" + age;
+                    + "&email=" + email
+                    + "&age=" + age
+                    + "&firstName=" + firstName
+                    + "&lastName=" + lastName;
         }
 
-        userService.createUser(username, age, password, roles);
+        userService.createUser(email, age, password, roles, firstName, lastName);
         return "redirect:/admin";
-    }
-
-    @GetMapping("/edit")
-    public String showEditForm(@RequestParam("id") Long id, Model model) {
-        User user = userService.getUserById(id);
-        model.addAttribute("user", user);
-        model.addAttribute("allRoles", roleRepository.findAll());
-        return "user-edit";
     }
 
     @PostMapping("/edit")
     public String editUser(@RequestParam("id") Long id,
-                           @RequestParam("username") String username,
+                           @RequestParam("email") String email,
                            @RequestParam("age") byte age,
                            @RequestParam(value = "password", required = false) String password,
-                           @RequestParam("roles") String[] roleNames) {
-        userService.updateUser(id, username, age, password, roleNames);
+                           @RequestParam("roles") String[] roleNames,
+                           @RequestParam(value = "firstName") String firstName,
+                           @RequestParam(value = "lastName") String lastName) {
+        userService.updateUser(id, email, age, password, roleNames, firstName, lastName);
         return "redirect:/admin";
     }
 
@@ -79,16 +70,5 @@ public class AdminController {
     public String deleteUser(@RequestParam("id") Long id) {
         userService.delete(id);
         return "redirect:/admin";
-    }
-
-    @GetMapping("/test-error")
-    public String testError() {
-        throw new RuntimeException("Test error");
-    }
-
-    @GetMapping("/fail")
-    public String fail() {
-        int x = 1 / 0;
-        return "index";
     }
 }

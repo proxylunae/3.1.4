@@ -6,6 +6,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 
 @Entity
@@ -13,7 +14,9 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String username;
+    private String email;
+    private String firstName;
+    private String lastName;
     private byte age;
     private String password;
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
@@ -27,14 +30,17 @@ public class User implements UserDetails {
     public User() {
     }
 
-    public User(String username, byte age, String password) {
-        this.username = username;
+    public User(String email, byte age, String password, Set<Role> roles, String firstName, String lastName) {
+        this.email = email;
         this.age = age;
         this.password = password;
+        this.roles = roles;
+        this.firstName = firstName;
+        this.lastName = lastName;
     }
 
-    public User(String username, byte age, String password, Set<Role> roles) {
-        this.username = username;
+    public User(String email, byte age, String password, Set<Role> roles) {
+        this.email = email;
         this.age = age;
         this.password = password;
         this.roles = roles;
@@ -56,6 +62,22 @@ public class User implements UserDetails {
         this.id = id;
     }
 
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return roles;
@@ -75,11 +97,15 @@ public class User implements UserDetails {
 
     @Override
     public String getUsername() {
-        return username;
+        return email;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     @Override
@@ -107,10 +133,18 @@ public class User implements UserDetails {
     }
 
     public String toString() {
-        return "User{" +
-                "id=" + id +
-                ", name='" + username + '\'' +
-                ", age=" + age +
-                '}';
+        return "User{" + "id=" +
+                id + ", email='" +
+                email + '\'' +
+                ", firstName='" +
+                firstName + '\'' +
+                ", lastName='" +
+                lastName + '\'' +
+                ", age=" + age + '}';
+    }
+    public String getRolesAsString() {
+        return roles.stream()
+                .map(role -> role.getName().replace("ROLE_", ""))
+                .collect(Collectors.joining(" "));
     }
 }

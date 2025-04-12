@@ -9,10 +9,7 @@ import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.repository.RoleRepository;
 import ru.kata.spring.boot_security.demo.repository.UserRepository;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,11 +29,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void add(User user) {
-        userRepository.add(user);
-    }
-
-    @Override
     public User getUserById(Long id) {
         return userRepository.getUserById(id);
     }
@@ -47,20 +39,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void update(User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        userRepository.update(user);
-    }
-
-    @Override
     public void delete(Long id) {
         userRepository.delete(id);
     }
 
     @Override
-    public void createUser(String username, byte age, String password, String[] roleNames) {
+    public void createUser(String email, byte age, String password, String[] roleNames, String firstName, String lastName) {
         Set<Role> roles = Arrays.stream(roleNames)
                 .map(roleRepository::findByName)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
         boolean hasAdmin = Arrays.asList(roleNames).contains("ROLE_ADMIN");
@@ -68,30 +55,28 @@ public class UserServiceImpl implements UserService {
             roles.add(roleRepository.findByName("ROLE_USER"));
         }
 
-        User user = new User(username, age, passwordEncoder.encode(password));
+        User user = new User(email, age, passwordEncoder.encode(password), roles, firstName, lastName);
         user.setRoles(roles);
         userRepository.add(user);
     }
 
     @Override
-    public void updateUser(Long id, String username, byte age, String password, String[] roleNames) {
+    public void updateUser(Long id, String email, byte age, String password, String[] roleNames, String firstName, String lastName) {
         User user = userRepository.getUserById(id);
-        user.setUsername(username);
+        user.setEmail(email);
         user.setAge(age);
-
-        if (password != null && !password.isBlank()) {
-            user.setPassword(passwordEncoder.encode(password));
-        }
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
+        updatePasswordIfNeeded(user, password);
 
         Set<Role> roles = Arrays.stream(roleNames)
-                .map(Long::parseLong)
-                .map(roleRepository::findById)
-                .map(opt -> opt.orElse(null))
+                .map(roleRepository::findByName)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
         boolean hasAdmin = roles.stream()
                 .anyMatch(r -> "ROLE_ADMIN".equals(r.getName()));
+
         if (hasAdmin) {
             Role userRole = roleRepository.findByName("ROLE_USER");
             if (userRole != null) {
@@ -103,9 +88,16 @@ public class UserServiceImpl implements UserService {
         userRepository.update(user);
     }
 
+    private void updatePasswordIfNeeded(User user, String password) {
+        if (password != null && !password.isBlank()) {
+            user.setPassword(passwordEncoder.encode(password));
+        }
+    }
+
+
 
     @Override
-    public User findByUsername(String username) {
-        return userRepository.findByUsername(username);
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email);
     }
 }

@@ -4,30 +4,29 @@
     <meta charset="UTF-8">
     <title>Login</title>
     <link rel="stylesheet" href="/css/bootstrap.css">
-    <link rel="stylesheet" href="/css/style.css">
 </head>
-<body class="d-flex justify-content-center align-items-center">
+<body class="bg-light">
 
-<div class="overlay-card text-center">
-    <h1 class="mb-4">Login</h1>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-4">
 
-    <form th:action="@{/process_login}" method="post">
-        <div class="form-group mb-3">
-            <input type="text" name="username" class="form-control" placeholder="Username" required>
+            <h4 class="mb-3">Please sign in</h4>
+
+            <form th:action="@{/process_login}" method="post">
+                <input type="email" name="username" class="form-control mb-1" placeholder="Email address" required>
+                <input type="password" name="password" class="form-control mb-1" placeholder="Password" required>
+                <button type="submit" class="btn btn-primary w-100">Sign in</button>
+            </form>
+
+            <div th:if="${param.error}" class="mt-2 text-danger text-center small">
+                Invalid email or password.
+            </div>
+            <div th:if="${param.logout}" class="mt-2 text-success text-center small">
+                You have been logged out.
+            </div>
+
         </div>
-
-        <div class="form-group mb-4">
-            <input type="password" name="password" class="form-control" placeholder="Password" required>
-        </div>
-
-        <button type="submit" class="btn btn-primary w-100">Login</button>
-    </form>
-
-    <div th:if="${param.error}" class="mt-3 text-danger">
-        Invalid username or password.
-    </div>
-    <div th:if="${param.logout}" class="mt-3 text-success">
-        You have been logged out.
     </div>
 </div>
 

@@ -19,13 +19,6 @@ public class SuccessUserHandler implements AuthenticationSuccessHandler {
                                         Authentication authentication) throws IOException {
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
 
-        boolean isAdmin = authorities.stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-
-        if (isAdmin) {
-            response.sendRedirect("/admin");
-        } else {
-            response.sendRedirect("/user");
-        }
+        response.sendRedirect("/admin");
     }
 }
