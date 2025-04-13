@@ -14,11 +14,23 @@ import java.util.Collection;
 public class SuccessUserHandler implements AuthenticationSuccessHandler {
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request,
-                                        HttpServletResponse response,
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException {
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
 
-        response.sendRedirect("/admin");
+        for (GrantedAuthority authority : authorities) {
+            String role = authority.getAuthority();
+
+            if (role.equals("ROLE_ADMIN")) {
+                response.sendRedirect("/admin");
+                return;
+            } else if (role.equals("ROLE_USER")) {
+                response.sendRedirect("/user");
+                return;
+            }
+        }
+
+        // fallback
+        response.sendRedirect("/");
     }
 }
