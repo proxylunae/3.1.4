@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Login</title>
@@ -13,22 +13,31 @@
 
             <h3 style="font-weight: bold;" class="mb-3">Please sign in</h3>
 
-            <form th:action="@{/process_login}" method="post">
-                <input style="margin-bottom: 0 !important;"  type="email" name="username" class="form-control mb-1" placeholder="Email address" required>
+            <form action="/process_login" method="post">
+                <input style="margin-bottom: 0 !important;" type="email" name="username" class="form-control mb-1"
+                       placeholder="Email address" required>
                 <input type="password" name="password" class="form-control mb-1" placeholder="Password" required>
                 <button type="submit" class="btn btn-primary w-100">Sign in</button>
             </form>
 
-            <div th:if="${param.error}" class="mt-2 text-danger text-center small">
+            <div id="error-message" class="mt-2 text-danger text-center small" style="display: none;">
                 Invalid email or password.
             </div>
-            <div th:if="${param.logout}" class="mt-2 text-success text-center small">
+            <div id="logout-message" class="mt-2 text-success text-center small" style="display: none;">
                 You have been logged out.
             </div>
 
         </div>
     </div>
 </div>
-
+<script>
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('error')) {
+        document.getElementById('error-message').style.display = 'block';
+    }
+    if (params.has('logout')) {
+        document.getElementById('logout-message').style.display = 'block';
+    }
+</script>
 </body>
 </html>
