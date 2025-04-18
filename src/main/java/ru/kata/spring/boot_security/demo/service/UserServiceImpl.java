@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.kata.spring.boot_security.demo.dto.UserDto;
 import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.repository.RoleRepository;
@@ -44,40 +45,45 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void createUser(String email, byte age, String password, String[] roleNames, String firstName, String lastName) {
-        Set<Role> roles = Arrays.stream(roleNames)
+    public void createUser(UserDto dto) {
+        Set<Role> roles = dto.getRoles().stream()
                 .map(roleRepository::findByName)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
-        boolean hasAdmin = Arrays.asList(roleNames).contains("ROLE_ADMIN");
-        if (hasAdmin) {
-            roles.add(roleRepository.findByName("ROLE_USER"));
+        if (dto.getRoles().contains("ROLE_ADMIN")) {
+            Role userRole = roleRepository.findByName("ROLE_USER");
+            if (userRole != null) {
+                roles.add(userRole);
+            }
         }
 
-        User user = new User(email, age, passwordEncoder.encode(password), roles, firstName, lastName);
-        user.setRoles(roles);
+        User user = new User(
+                dto.getEmail(),
+                dto.getAge(),
+                passwordEncoder.encode(dto.getPassword()),
+                roles,
+                dto.getFirstName(),
+                dto.getLastName()
+        );
         userRepository.add(user);
     }
 
     @Override
-    public void updateUser(Long id, String email, byte age, String password, String[] roleNames, String firstName, String lastName) {
+    public void updateUser(Long id, UserDto dto) {
         User user = userRepository.getUserById(id);
-        user.setEmail(email);
-        user.setAge(age);
-        user.setFirstName(firstName);
-        user.setLastName(lastName);
-        updatePasswordIfNeeded(user, password);
+        user.setEmail(dto.getEmail());
+        user.setAge(dto.getAge());
+        user.setFirstName(dto.getFirstName());
+        user.setLastName(dto.getLastName());
+        updatePasswordIfNeeded(user, dto.getPassword());
 
-        Set<Role> roles = Arrays.stream(roleNames)
+        Set<Role> roles = dto.getRoles().stream()
                 .map(roleRepository::findByName)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
-        boolean hasAdmin = roles.stream()
-                .anyMatch(r -> "ROLE_ADMIN".equals(r.getName()));
-
-        if (hasAdmin) {
+        if (dto.getRoles().contains("ROLE_ADMIN")) {
             Role userRole = roleRepository.findByName("ROLE_USER");
             if (userRole != null) {
                 roles.add(userRole);
@@ -87,6 +93,7 @@ public class UserServiceImpl implements UserService {
         user.setRoles(roles);
         userRepository.update(user);
     }
+
 
     private void updatePasswordIfNeeded(User user, String password) {
         if (password != null && !password.isBlank()) {

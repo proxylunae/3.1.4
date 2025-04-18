@@ -4,11 +4,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import ru.kata.spring.boot_security.demo.dto.UserDto;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.service.UserService;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
@@ -32,33 +32,14 @@ public class UserRestController {
     }
 
     @PostMapping
-    public ResponseEntity<Void> createUser(@RequestBody Map<String, Object> userMap) {
-        String firstName = (String) userMap.get("firstName");
-        String lastName = (String) userMap.get("lastName");
-        Byte age = ((Integer) userMap.get("age")).byteValue();
-        String email = (String) userMap.get("email");
-        String password = (String) userMap.get("password");
-
-        List<String> roles = (List<String>) userMap.get("roles");
-
-        userService.createUser(email, age, password,
-                roles.toArray(new String[0]), firstName, lastName);
-
+    public ResponseEntity<Void> createUser(@RequestBody UserDto userDto) {
+        userService.createUser(userDto);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Void> updateUser(@PathVariable Long id, @RequestBody Map<String, Object> userMap) {
-        String firstName = (String) userMap.get("firstName");
-        String lastName = (String) userMap.get("lastName");
-        Byte age = ((Integer) userMap.get("age")).byteValue();
-        String email = (String) userMap.get("email");
-        String password = (String) userMap.get("password");
-        List<String> roles = (List<String>) userMap.get("roles");
-
-        userService.updateUser(id, email, age, password,
-                roles.toArray(new String[0]), firstName, lastName);
-
+    public ResponseEntity<Void> updateUser(@PathVariable Long id, @RequestBody UserDto userDto) {
+        userService.updateUser(id, userDto);
         return ResponseEntity.ok().build();
     }
 
@@ -72,5 +53,4 @@ public class UserRestController {
     public ResponseEntity<User> getCurrentUser(@AuthenticationPrincipal User user) {
         return ResponseEntity.ok(user);
     }
-
 }

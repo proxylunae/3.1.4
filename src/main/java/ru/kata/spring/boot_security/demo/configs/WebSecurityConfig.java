@@ -17,11 +17,11 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class WebSecurityConfig {
 
-    private final SuccessUserHandler successUserHandler;
+    private final CustomSuccessHandler customSuccessHandler;
 
     @Autowired
-    public WebSecurityConfig(SuccessUserHandler successUserHandler) {
-        this.successUserHandler = successUserHandler;
+    public WebSecurityConfig(CustomSuccessHandler customSuccessHandler) {
+        this.customSuccessHandler = customSuccessHandler;
     }
 
     @Bean
@@ -43,28 +43,28 @@ public class WebSecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/error").permitAll()
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/login", "/login.html", "/error", "/js/**", "/css/**").permitAll()
+                        .requestMatchers("/admin/**", "/admin.html").hasRole("ADMIN")
                         .requestMatchers("/user").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/api/users/current").authenticated()
                         .anyRequest().authenticated()
                 )
                 .formLogin(login -> login
                         .loginPage("/login").permitAll()
                         .loginProcessingUrl("/process_login")
-                        .successHandler(successUserHandler)
+                        .successHandler(customSuccessHandler)
                         .failureUrl("/login?error=true")
-                        .permitAll()
                 )
                 .logout(logout -> logout
                         .logoutSuccessUrl("/login?logout")
                         .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
                         .clearAuthentication(true)
                         .permitAll()
                 )
                 .exceptionHandling(exception -> exception
-                        .accessDeniedPage("/access-denied")
+                        .accessDeniedPage("/access-denied.html")
                 );
-
 
         return http.build();
     }

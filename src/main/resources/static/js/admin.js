@@ -25,8 +25,6 @@ async function loadUsers() {
     });
 }
 
-window.addEventListener('DOMContentLoaded', loadUsers);
-
 async function loadRoles(selectElementId) {
     const response = await fetch('/api/roles');
     const roles = await response.json();
@@ -43,10 +41,14 @@ async function loadRoles(selectElementId) {
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
+    const access = await checkAccess();
+    if (!access) return;
+
     await loadUsers();
     await loadRoles('roles');
     await loadCurrentUserInfo();
 });
+
 
 document.getElementById('addUserForm').addEventListener('submit', async function (e) {
     e.preventDefault();
@@ -198,7 +200,15 @@ document.getElementById('deleteUserForm').addEventListener('submit', async funct
 });
 
 async function loadCurrentUserInfo() {
-    const response = await fetch('/api/users/current');
+    const response = await fetch('/api/users/current', {
+        method: 'GET',
+        cache: 'no-store',
+        credentials: 'same-origin'
+    });
+    if (!response.ok) {
+        console.error('Failed to load current user info:', response.status);
+        return;
+    }
     const user = await response.json();
 
     const roles = user.roles.map(r => r.name.replace('ROLE_', '')).join(' ');
@@ -216,3 +226,24 @@ async function loadCurrentUserInfo() {
         <td>${roles}</td>
     `;
 }
+
+async function checkAccess() {
+    const response = await fetch('/api/users/current', { cache: 'no-store', credentials: 'same-origin' });
+    if (!response.ok) {
+        window.location.href = '/login';
+        return false;
+    }
+    const user = await response.json();
+    const roles = user.roles.map(r => r.name);
+
+    if (!roles.includes("ROLE_ADMIN")) {
+        if (response.status === 403) {
+            window.location.href = "/access-denied";
+        }
+        return false;
+    }
+
+    return true;
+}
+
+

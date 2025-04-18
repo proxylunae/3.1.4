@@ -3,11 +3,14 @@ package ru.kata.spring.boot_security.demo.util;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import ru.kata.spring.boot_security.demo.dto.UserDto;
 import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.repository.RoleRepository;
 import ru.kata.spring.boot_security.demo.service.UserService;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 @Component
@@ -30,10 +33,24 @@ public class DataInitializer implements CommandLineRunner {
         roleRepository.save(adminRole);
         roleRepository.save(userRole);
 
-        userService.createUser("admin@mail.ru", (byte) 30, "admin",
-                new String[]{"ROLE_ADMIN", "ROLE_USER"}, "AdminFirstName", "AdminLastName");
+        UserDto adminDto = new UserDto();
+        adminDto.setEmail("admin@mail.ru");
+        adminDto.setAge((byte) 30);
+        adminDto.setPassword("admin");
+        adminDto.setRoles(List.of("ROLE_ADMIN", "ROLE_USER"));
+        adminDto.setFirstName("AdminFirstName");
+        adminDto.setLastName("AdminLastName");
 
-        userService.createUser("user@mail.ru", (byte) 25, "user",
-                new String[]{"ROLE_USER"}, "UserFirstName", "UserLastName");
+        UserDto userDto = new UserDto();
+        userDto.setEmail("user@mail.ru");
+        userDto.setAge((byte) 25);
+        userDto.setPassword("user");
+        userDto.setRoles(List.of("ROLE_USER"));
+        userDto.setFirstName("UserFirstName");
+        userDto.setLastName("UserLastName");
+
+        userService.createUser(adminDto);
+
+        userService.createUser(userDto);
     }
 }
